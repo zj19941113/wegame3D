@@ -11,7 +11,7 @@ var Colors = {
 };
 
 var WIDTH = window.innerWidth;
-var HEIGHT = window.innerHeight;;
+var HEIGHT = window.innerHeight;
 
 var Sea = function () {
 
