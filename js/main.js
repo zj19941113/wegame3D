@@ -56,7 +56,7 @@ var Sea = function () {
     opacity: .8,
     shading: THREE.FlatShading,
   });
- 
+
   this.mesh = new THREE.Mesh(geom, mat);
 
   // 允许大海对象接收阴影
@@ -256,7 +256,7 @@ var AirPlane = function () {
   this.mesh.add(this.propeller);
 
   this.pilot = new Pilot();
-  this.pilot.mesh.position.set(-10,27,0);
+  this.pilot.mesh.position.set(-10, 27, 0);
   this.mesh.add(this.pilot.mesh);
 };
 var Pilot = function () {
@@ -344,7 +344,6 @@ var Pilot = function () {
   this.mesh.add(earL);
   this.mesh.add(earR);
 }
-// 移动头发
 Pilot.prototype.updateHairs = function () {
 
   // 获得头发
@@ -360,6 +359,18 @@ Pilot.prototype.updateHairs = function () {
   // 在下一帧增加角度
   this.angleHairs += 0.16;
 }
+var UI = function () {
+  this.scene = new THREE.Scene();
+  this.camera = new THREE.OrthographicCamera(WIDTH / -2, WIDTH / 2, HEIGHT / 2, HEIGHT / -2, 0, 10000);
+  this.camera.position.z = 10000;
+}
+UI.prototype.add = function (obj) {
+  this.scene.add(obj);
+}
+UI.prototype.render = function (renderer) {
+  renderer.clearDepth();
+  renderer.render(this.scene, this.camera);
+}
 var Controller = function () {
   this.mesh = new THREE.Object3D();
   var controllerRadius = HEIGHT * 0.17 > 105 ? 105 : HEIGHT * 0.17;
@@ -367,16 +378,16 @@ var Controller = function () {
 
   // 创建轮盘
   var geometry = new THREE.CircleGeometry(controllerRadius, 32);
-  var material = new THREE.LineBasicMaterial({ color: 0xf7d9aa});
+  var material = new THREE.LineBasicMaterial({ color: 0xf7d9aa });
   geometry.vertices.shift();
   var circle = new THREE.LineLoop(geometry, material);
   this.mesh.add(circle);
 
   var geometry = new THREE.CircleGeometry(controllerRadius, 32);
-  var material = new THREE.MeshBasicMaterial({ 
+  var material = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     transparent: true,
-    opacity:0.1
+    opacity: 0.1
   });
   var bgcircle = new THREE.Mesh(geometry, material);
   this.mesh.add(bgcircle);
@@ -384,7 +395,7 @@ var Controller = function () {
   // 创建当前位置
   var wheel = new THREE.Object3D();
   wheel.name = "wheel";
-  var geometry = new THREE.CircleGeometry(controllerRadius*0.33, 32);
+  var geometry = new THREE.CircleGeometry(controllerRadius * 0.33, 32);
   var material = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     transparent: true,
@@ -393,7 +404,7 @@ var Controller = function () {
   var circle1 = new THREE.Mesh(geometry, material);
   wheel.add(circle1);
 
-  var geometry = new THREE.CircleGeometry(controllerRadius * 0.33-2, 32);
+  var geometry = new THREE.CircleGeometry(controllerRadius * 0.33 - 2, 32);
   var material = new THREE.MeshBasicMaterial({
     color: 0x201D13,
     transparent: true,
@@ -406,21 +417,6 @@ var Controller = function () {
 
   // 创建指向标
 
-}
-Controller.prototype.updateController = function () {
-
-}
-var UI = function () {
-  this.scene = new THREE.Scene();
-  this.camera = new THREE.OrthographicCamera(WIDTH / -2, WIDTH / 2, HEIGHT / 2, HEIGHT / -2, 0, 10000);
-  this.camera.position.z = 10000;
-}
-UI.prototype.add = function (obj) {
-  this.scene.add(obj);
-}
-UI.prototype.render = function (renderer) {
-  renderer.clearDepth();
-  renderer.render(this.scene, this.camera);
 }
 
 // ... 其它变量／常量 ...
@@ -443,7 +439,7 @@ export default class Main {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xe5e0ba);
     scene.fog = new THREE.Fog(0xf7d9aa, 100, 950);
-    
+
     this.scene = scene;
 
     // 创建相机
@@ -469,11 +465,11 @@ export default class Main {
       antialias: true, // 开启抗锯齿
       canvas: canvas
     });
-    renderer.setSize(WIDTH, HEIGHT); 
+    renderer.setSize(WIDTH, HEIGHT);
     // 打开渲染器的阴影地图
     renderer.shadowMap.enabled = true;
     renderer.autoClear = false;
-    this.renderer = renderer;    
+    this.renderer = renderer;
   }
   createLights() {
     var hemisphereLight, shadowLight, ambientLight;
@@ -510,7 +506,7 @@ export default class Main {
     this.shadowLight = shadowLight;
 
     // 环境光源修改场景中的全局颜色和使阴影更加柔和
-    ambientLight = new THREE.AmbientLight(0xdc8874, .3); 
+    ambientLight = new THREE.AmbientLight(0xdc8874, .3);
     this.ambientLight = ambientLight;
 
     // 为了使这些光源呈现效果，只需要将它们添加到场景中
@@ -550,72 +546,10 @@ export default class Main {
     this.ui = new UI();
     // 创建轮盘
     var controller = new Controller();
-    console.log(controller)
+    // console.log(controller)；
     controller.mesh.position.set(30 + controller.controllerRadius - WIDTH * 0.5, 20 + controller.controllerRadius - HEIGHT * 0.5, 0);
     this.controller = controller;
     this.ui.add(this.controller.mesh);
-  }
-  checkIsFingerOnController(x, y) {
-    return x*x+y*y<1;
-  }
-  touchEvent() {
-    canvas.addEventListener('touchstart', ((e) => {
-      e.preventDefault()
-
-      var radius = this.controller.controllerRadius;
-
-      var tx = (e.touches[0].clientX - 30 - radius) / radius;
-      var ty = (HEIGHT -e.touches[0].clientY - 20 - radius) / radius;
-
-      if (this.checkIsFingerOnController(tx, ty)) {
-        this.touched = true;
-        this.controller.mesh.children[2].children[1].material.opacity = 0.3;
-        this.mousePos = { x: tx, y: ty };
-      }
-
-    }).bind(this))
-
-    canvas.addEventListener('touchmove', ((e) => {
-      e.preventDefault()
-      if (this.touched) {
-        var radius = this.controller.controllerRadius;
-
-        var tx = (e.touches[0].clientX - 30 - radius) / radius;
-        var ty = (HEIGHT-e.touches[0].clientY - 20 - radius) / radius;
-        
-        if (this.checkIsFingerOnController(tx, ty)){
-          this.mousePos = { x: tx, y: ty };
-        }
-        else{
-          let k = ty/tx;
-          if (tx > 0 && ty > 0) {tx = 1 / Math.sqrt(k * k + 1);ty = k * tx;}
-          else if (tx < 0 && ty > 0) { tx = -1 / Math.sqrt(k * k + 1); ty = k * tx; }
-          else if (tx > 0 && ty < 0) { tx = 1 / Math.sqrt(k * k + 1); ty = k * tx; }
-          else { tx = -1 / Math.sqrt(k * k + 1); ty = k * tx; }
-          this.mousePos = { x: tx, y: ty };
-        }
-      }
-    }).bind(this))
-
-    canvas.addEventListener('touchend', ((e) => {
-      e.preventDefault()
-      this.touched = false;
-      this.controller.mesh.children[2].children[1].material.opacity = 0.1;
-      this.mousePos = { x: 0, y: 0 };
-    }).bind(this))
-  }
-  updateController() {
-
-    var radius = this.controller.controllerRadius;
-    // 在x轴上-radius至radius之间移动点标
-    // 根据鼠标的位置在-1与1之间的范围，使用 normalize 函数实现（如下）
-    var targetX = this.normalize(this.mousePos.x, -1, 1, (-1 + 0.33) * radius, (1 - 0.33)*radius);
-    var targetY = this.normalize(this.mousePos.y, -1, 1, (-1 + 0.33) * radius, (1 - 0.33)*radius);
-
-    // 在每帧通过添加剩余距离的一小部分的值移动点标
-    this.controller.mesh.children[2].position.x += (targetX - this.controller.mesh.children[2].position.x) * 0.25;
-    this.controller.mesh.children[2].position.y += (targetY - this.controller.mesh.children[2].position.y) * 0.25;
-
   }
 
   updatePlane() {
@@ -639,6 +573,70 @@ export default class Main {
     this.airplane.propeller.rotation.x += 0.3;
     this.airplane.pilot.updateHairs();
   }
+
+  touchEvent() {
+    canvas.addEventListener('touchstart', ((e) => {
+      e.preventDefault()
+
+      var radius = this.controller.controllerRadius;
+
+      var tx = (e.touches[0].clientX - 30 - radius) / radius;
+      var ty = (HEIGHT - e.touches[0].clientY - 20 - radius) / radius;
+
+      if (this.checkIsFingerOnController(tx, ty)) {
+        this.touched = true;
+        this.controller.mesh.children[2].children[1].material.opacity = 0.3;
+        this.mousePos = { x: tx, y: ty };
+      }
+
+    }).bind(this))
+
+    canvas.addEventListener('touchmove', ((e) => {
+      e.preventDefault()
+      if (this.touched) {
+        var radius = this.controller.controllerRadius;
+
+        var tx = (e.touches[0].clientX - 30 - radius) / radius;
+        var ty = (HEIGHT - e.touches[0].clientY - 20 - radius) / radius;
+
+        if (this.checkIsFingerOnController(tx, ty)) {
+          this.mousePos = { x: tx, y: ty };
+        }
+        else {
+          let k = ty / tx;
+          if (tx > 0 && ty > 0) { tx = 1 / Math.sqrt(k * k + 1); ty = k * tx; }
+          else if (tx < 0 && ty > 0) { tx = -1 / Math.sqrt(k * k + 1); ty = k * tx; }
+          else if (tx > 0 && ty < 0) { tx = 1 / Math.sqrt(k * k + 1); ty = k * tx; }
+          else { tx = -1 / Math.sqrt(k * k + 1); ty = k * tx; }
+          this.mousePos = { x: tx, y: ty };
+        }
+      }
+    }).bind(this))
+
+    canvas.addEventListener('touchend', ((e) => {
+      e.preventDefault()
+      this.touched = false;
+      this.controller.mesh.children[2].children[1].material.opacity = 0.1;
+      this.mousePos = { x: 0, y: 0 };
+    }).bind(this))
+  }
+  checkIsFingerOnController(x, y) {
+    return x * x + y * y < 1;
+  }
+
+  updatePosition() {
+
+    var radius = this.controller.controllerRadius;
+    // 在x轴上-radius至radius之间移动点标
+    // 根据鼠标的位置在-1与1之间的范围，使用 normalize 函数实现（如下）
+    var targetX = this.normalize(this.mousePos.x, -1, 1, (-1 + 0.33) * radius, (1 - 0.33) * radius);
+    var targetY = this.normalize(this.mousePos.y, -1, 1, (-1 + 0.33) * radius, (1 - 0.33) * radius);
+
+    // 在每帧通过添加剩余距离的一小部分的值移动点标
+    this.controller.mesh.children[2].position.x += (targetX - this.controller.mesh.children[2].position.x) * 0.25;
+    this.controller.mesh.children[2].position.y += (targetY - this.controller.mesh.children[2].position.y) * 0.25;
+
+  }
   normalize(v, vmin, vmax, tmin, tmax) {
     var nv = Math.max(Math.min(v, vmax), vmin);
     var dv = vmax - vmin;
@@ -647,15 +645,18 @@ export default class Main {
     var tv = tmin + (pc * dt);
     return tv;
   }
+
   start() {
     // 添加对象 
     this.createPlane();
     this.createSea();
     this.createSky();
     this.createUI();
+
     this.mousePos = { x: 0, y: 0 };
     // 初始化事件监听
     this.touchEvent();
+
     window.requestAnimationFrame(this.loop.bind(this), canvas);
   }
   update() {
@@ -666,15 +667,11 @@ export default class Main {
     // 更新每帧的飞机
     this.updatePlane();
 
-    // 更新每帧的轮盘
-    this.updateController();
-
     // 更新每帧的海浪
     this.sea.moveWaves();
 
-    // 更新轮盘
-    this.controller.updateController();
-
+    // 更新每帧的鼠标位置
+    this.updatePosition();
   }
   loop() {
     this.update()
